@@ -1,0 +1,16 @@
+[package]
+authors = ["Jorge Aparicio <jorge@japaric.io>"]
+categories = ["command-line-interface"]
+description = "Library to retrieve information about a Cargo project"
+documentation = "https://docs.rs/cargo-project"
+keywords = ["Cargo", "project", "subcommand"]
+license = "MIT OR Apache-2.0"
+name = "cargo-project"
+repository = "https://github.com/japaric/cargo-project"
+version = "0.1.0"
+
+[dependencies]
+failure = "0.1.2"
+serde = "1.0.79"
+serde_derive = "1.0.79"
+toml = "0.4.6"
