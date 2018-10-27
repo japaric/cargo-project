@@ -7,10 +7,11 @@ keywords = ["Cargo", "project", "subcommand"]
 license = "MIT OR Apache-2.0"
 name = "cargo-project"
 repository = "https://github.com/japaric/cargo-project"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies]
 failure = "0.1.2"
+rustc-cfg = "0.4.0"
 serde = "1.0.79"
 serde_derive = "1.0.79"
 toml = "0.4.6"
