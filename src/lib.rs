@@ -11,6 +11,7 @@ extern crate serde;
 extern crate toml;
 #[macro_use]
 extern crate serde_derive;
+extern crate rustc_cfg;
 
 mod config;
 mod manifest;
@@ -23,6 +24,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use rustc_cfg::Cfg;
 use serde::Deserialize;
 use toml::de;
 
@@ -110,12 +112,29 @@ impl Project {
     }
 
     /// Returns the path to a build artifact
-    pub fn path(&self, artifact: Artifact, profile: Profile, target: Option<&str>) -> PathBuf {
+    ///
+    /// # Inputs
+    ///
+    /// - `artifact` is the kind of build artifact: `Bin` (`--bin`), `Example` (`--example`), `Lib`
+    /// (`--lib`)
+    /// - `profile` is the compilation profile: `Dev` or `Release` (`--release`)
+    /// - `target` is the specified compilation target (`--target`)
+    /// - `host` is the triple of host -- this is used as the compilation target when no `target` is
+    /// specified and the project has no default build target
+    pub fn path(
+        &self,
+        artifact: Artifact,
+        profile: Profile,
+        target: Option<&str>,
+        host: &str,
+    ) -> Result<PathBuf, failure::Error> {
         let mut path = self.target_dir().to_owned();
 
         if let Some(target) = target.or(self.target()) {
             path.push(target);
         }
+
+        let cfg = Cfg::of(target.or(self.target()).unwrap_or(host))?;
 
         match profile {
             Profile::Dev => path.push("debug"),
@@ -124,10 +143,34 @@ impl Project {
         }
 
         match artifact {
-            Artifact::Bin(bin) => path.push(bin),
+            Artifact::Bin(bin) => {
+                path.push(bin);
+
+                if cfg.target_arch == "wasm32" {
+                    path.set_extension("wasm");
+                } else if cfg
+                    .target_family
+                    .as_ref()
+                    .map(|f| f == "windows")
+                    .unwrap_or(false)
+                {
+                    path.set_extension("exe");
+                }
+            }
             Artifact::Example(example) => {
                 path.push("examples");
                 path.push(example);
+
+                if cfg.target_arch == "wasm32" {
+                    path.set_extension("wasm");
+                } else if cfg
+                    .target_family
+                    .as_ref()
+                    .map(|f| f == "windows")
+                    .unwrap_or(false)
+                {
+                    path.set_extension("exe");
+                }
             }
             Artifact::Lib => {
                 path.push(format!("lib{}.rlib", self.name().replace("-", "_")));
@@ -135,7 +178,7 @@ impl Project {
             Artifact::__HIDDEN__ => unreachable!(),
         }
 
-        path
+        Ok(path)
     }
 
     /// Returns the name of the project (`package.name`)
@@ -209,4 +252,72 @@ where
     let mut s = String::new();
     File::open(path)?.read_to_string(&mut s)?;
     Ok(de::from_str(&s)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+
+    use super::{Artifact, Profile, Project};
+
+    #[test]
+    fn path() {
+        let project = Project::query(env::current_dir().unwrap()).unwrap();
+
+        let thumb = "thumbv7m-none-eabi";
+        let wasm = "wasm32-unknown-unknown";
+        let windows = "x86_64-pc-windows-msvc";
+        let linux = "x86_64-unknown-linux-gnu";
+
+        let p = project
+            .path(Artifact::Bin("foo"), Profile::Dev, None, windows)
+            .unwrap();
+
+        assert!(p.to_str().unwrap().ends_with("target/debug/foo.exe"));
+
+        let p = project
+            .path(Artifact::Example("bar"), Profile::Dev, None, windows)
+            .unwrap();
+
+        assert!(p
+            .to_str()
+            .unwrap()
+            .ends_with("target/debug/examples/bar.exe"));
+
+        let p = project
+            .path(Artifact::Bin("foo"), Profile::Dev, Some(thumb), windows)
+            .unwrap();
+
+        assert!(p
+            .to_str()
+            .unwrap()
+            .ends_with(&format!("target/{}/debug/foo", thumb)));
+
+        let p = project
+            .path(Artifact::Example("bar"), Profile::Dev, Some(thumb), windows)
+            .unwrap();
+
+        assert!(p
+            .to_str()
+            .unwrap()
+            .ends_with(&format!("target/{}/debug/examples/bar", thumb)));
+
+        let p = project
+            .path(Artifact::Bin("foo"), Profile::Dev, Some(wasm), linux)
+            .unwrap();
+
+        assert!(p
+            .to_str()
+            .unwrap()
+            .ends_with(&format!("target/{}/debug/foo.wasm", wasm)));
+
+        let p = project
+            .path(Artifact::Example("bar"), Profile::Dev, Some(wasm), linux)
+            .unwrap();
+
+        assert!(p
+            .to_str()
+            .unwrap()
+            .ends_with(&format!("target/{}/debug/examples/bar.wasm", wasm)));
+    }
 }
