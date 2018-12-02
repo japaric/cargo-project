@@ -213,7 +213,7 @@ pub enum Artifact<'a> {
 }
 
 /// Build profile
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Profile {
     /// Development profile
     Dev,
