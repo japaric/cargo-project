@@ -38,6 +38,8 @@ pub struct Project {
     target: Option<String>,
 
     target_dir: PathBuf,
+
+    toml: PathBuf,
 }
 
 /// Errors
@@ -61,7 +63,8 @@ impl Project {
         let root = search(path, "Cargo.toml").ok_or(Error::NotACargoProject)?;
 
         // parse Cargo.toml
-        let manifest = parse::<Manifest>(&root.join("Cargo.toml"))?;
+        let toml = root.join("Cargo.toml");
+        let manifest = parse::<Manifest>(&toml)?;
 
         // parse .cargo/config
         let mut target = None;
@@ -108,6 +111,7 @@ impl Project {
             name: manifest.package.name,
             target,
             target_dir: target_dir.unwrap_or(root.join("target")),
+            toml,
         })
     }
 
@@ -189,6 +193,11 @@ impl Project {
     /// Returns the default compilation target
     pub fn target(&self) -> Option<&str> {
         self.target.as_ref().map(|s| &**s)
+    }
+
+    /// Returns the path to the project's `Cargo.toml`
+    pub fn toml(&self) -> &Path {
+        &self.toml
     }
 
     /// Returns the target directory path
