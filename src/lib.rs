@@ -85,15 +85,14 @@ impl Project {
             if let Some(outer_root) = search(path, "Cargo.toml") {
                 if let Ok(manifest) = parse::<workspace::Manifest>(&outer_root.join("Cargo.toml")) {
                     // this is indeed a workspace
-                    if manifest
-                        .workspace
-                        .members
-                        .iter()
-                        .any(|member| outer_root.join(member) == root)
-                    {
-                        // we are a member of this workspace
-                        workspace = Some(outer_root);
-                        break;
+                    for member_glob in &manifest.workspace.members {
+                        for member_dir in glob::glob(member_glob)? {
+                            if outer_root.join(member_dir?) == root {
+                                // we are a member of this workspace
+                                workspace = Some(outer_root);
+                                break;
+                            }
+                        }
                     }
                 }
 
