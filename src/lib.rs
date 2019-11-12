@@ -11,6 +11,7 @@ extern crate serde;
 extern crate toml;
 #[macro_use]
 extern crate serde_derive;
+extern crate log;
 extern crate rustc_cfg;
 
 mod config;
@@ -24,6 +25,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use log::{debug, trace};
 use rustc_cfg::Cfg;
 use serde::Deserialize;
 use toml::de;
@@ -59,8 +61,13 @@ impl Project {
     where
         P: AsRef<Path>,
     {
-        let path = path.as_ref();
-        let root = search(path, "Cargo.toml").ok_or(Error::NotACargoProject)?;
+        let path = path.as_ref().canonicalize()?;
+        let root = search(&path, "Cargo.toml").ok_or(Error::NotACargoProject)?;
+        debug!(
+            "Project::query(path={}): root={}",
+            path.display(),
+            root.display()
+        );
 
         // parse Cargo.toml
         let toml = root.join("Cargo.toml");
@@ -82,18 +89,30 @@ impl Project {
         let mut cwd = root.parent();
         let mut workspace = None;
         while let Some(path) = cwd {
+            debug!("workspace search: cwd={}", path.display());
             if let Some(outer_root) = search(path, "Cargo.toml") {
                 if let Ok(manifest) = parse::<workspace::Manifest>(&outer_root.join("Cargo.toml")) {
+                    debug!(
+                        "found workspace: cwd={}, outer_root={}, members={:?}",
+                        path.display(),
+                        outer_root.display(),
+                        manifest.workspace.members,
+                    );
                     // this is indeed a workspace
-                    if manifest
-                        .workspace
-                        .members
-                        .iter()
-                        .any(|member| outer_root.join(member) == root)
-                    {
-                        // we are a member of this workspace
-                        workspace = Some(outer_root);
-                        break;
+                    for member_glob in &manifest.workspace.members {
+                        let abs_glob = outer_root.join(member_glob);
+                        let abs_glob = abs_glob.to_str().ok_or_else(|| {
+                            format_err!("invalid workspace member path {}", member_glob)
+                        })?;
+                        for member_dir in glob::glob(abs_glob)? {
+                            let member_dir = member_dir?;
+                            trace!("member_dir={}", member_dir.display());
+                            if outer_root.join(member_dir) == root {
+                                // we are a member of this workspace
+                                workspace = Some(outer_root);
+                                break;
+                            }
+                        }
                     }
                 }
 
