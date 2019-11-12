@@ -259,18 +259,8 @@ impl Profile {
 }
 
 /// Search for `file` in `path` and its parent directories
-fn search<'p>(mut path: &'p Path, file: &str) -> Option<&'p Path> {
-    loop {
-        if path.join(file).exists() {
-            return Some(path);
-        }
-
-        if let Some(p) = path.parent() {
-            path = p;
-        } else {
-            return None;
-        }
-    }
+fn search<'p>(path: &'p Path, file: &str) -> Option<&'p Path> {
+    path.ancestors().find(|dir| dir.join(file).exists())
 }
 
 fn parse<T>(path: &Path) -> Result<T, failure::Error>
