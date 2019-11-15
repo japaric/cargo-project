@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.3] - 2019-11-14
+
+### Fixed
+
+- Fixed detection of workspaces (globs and relative paths)
+
 ## [v0.2.2] - 2019-03-22
 
 ### Added
@@ -31,7 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 First release
 
-[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.2.3...HEAD
+[v0.2.3]: https://github.com/japaric/cargo-project/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cargo-project/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cargo-project/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/japaric/cargo-project/compare/v0.1.0...v0.2.0
