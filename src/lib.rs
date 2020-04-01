@@ -71,13 +71,14 @@ impl Project {
 
         // parse Cargo.toml
         let toml = root.join("Cargo.toml");
+        let cargo_config = Path::new(".cargo").join("config");
         let manifest = parse::<Manifest>(&toml)?;
 
         // parse .cargo/config
         let mut target = None;
         let mut target_dir = env::var_os("CARGO_TARGET_DIR").map(PathBuf::from);
-        if let Some(path) = search(root, ".cargo/config") {
-            let config: Config = parse(&path.join(".cargo/config"))?;
+        if let Some(path) = search(root, &cargo_config) {
+            let config: Config = parse(&path.join(&cargo_config))?;
 
             if let Some(build) = config.build {
                 target = build.target;
@@ -259,8 +260,8 @@ impl Profile {
 }
 
 /// Search for `file` in `path` and its parent directories
-fn search<'p>(path: &'p Path, file: &str) -> Option<&'p Path> {
-    path.ancestors().find(|dir| dir.join(file).exists())
+fn search<'p, P: AsRef<Path>>(path: &'p Path, file: P) -> Option<&'p Path> {
+    path.ancestors().find(|dir| dir.join(&file).exists())
 }
 
 fn parse<T>(path: &Path) -> Result<T, failure::Error>
