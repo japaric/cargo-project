@@ -292,51 +292,36 @@ mod tests {
             .path(Artifact::Bin("foo"), Profile::Dev, None, windows)
             .unwrap();
 
-        assert!(p.to_str().unwrap().ends_with("target/debug/foo.exe"));
+        assert!(p.ends_with("target/debug/foo.exe"));
 
         let p = project
             .path(Artifact::Example("bar"), Profile::Dev, None, windows)
             .unwrap();
 
-        assert!(p
-            .to_str()
-            .unwrap()
-            .ends_with("target/debug/examples/bar.exe"));
+        assert!(p.ends_with("target/debug/examples/bar.exe"));
 
         let p = project
             .path(Artifact::Bin("foo"), Profile::Dev, Some(thumb), windows)
             .unwrap();
 
-        assert!(p
-            .to_str()
-            .unwrap()
-            .ends_with(&format!("target/{}/debug/foo", thumb)));
+        assert!(p.ends_with(&format!("target/{}/debug/foo", thumb)));
 
         let p = project
             .path(Artifact::Example("bar"), Profile::Dev, Some(thumb), windows)
             .unwrap();
 
-        assert!(p
-            .to_str()
-            .unwrap()
-            .ends_with(&format!("target/{}/debug/examples/bar", thumb)));
+        assert!(p.ends_with(&format!("target/{}/debug/examples/bar", thumb)));
 
         let p = project
             .path(Artifact::Bin("foo"), Profile::Dev, Some(wasm), linux)
             .unwrap();
 
-        assert!(p
-            .to_str()
-            .unwrap()
-            .ends_with(&format!("target/{}/debug/foo.wasm", wasm)));
+        assert!(p.ends_with(&format!("target/{}/debug/foo.wasm", wasm)));
 
         let p = project
             .path(Artifact::Example("bar"), Profile::Dev, Some(wasm), linux)
             .unwrap();
 
-        assert!(p
-            .to_str()
-            .unwrap()
-            .ends_with(&format!("target/{}/debug/examples/bar.wasm", wasm)));
+        assert!(p.ends_with(&format!("target/{}/debug/examples/bar.wasm", wasm)));
     }
 }
