@@ -72,13 +72,21 @@ impl Project {
         // parse Cargo.toml
         let toml = root.join("Cargo.toml");
         let cargo_config = Path::new(".cargo").join("config");
+        let cargo_config_toml = Path::new(".cargo").join("config.toml");
         let manifest = parse::<Manifest>(&toml)?;
 
-        // parse .cargo/config
+        // parse .cargo/config or .cargo/config.toml
         let mut target = None;
         let mut target_dir = env::var_os("CARGO_TARGET_DIR").map(PathBuf::from);
         if let Some(path) = search(root, &cargo_config) {
             let config: Config = parse(&path.join(&cargo_config))?;
+
+            if let Some(build) = config.build {
+                target = build.target;
+                target_dir = target_dir.or(build.target_dir.map(PathBuf::from));
+            }
+        } else if let Some(path) = search(root, &cargo_config_toml) {
+            let config: Config = parse(&path.join(&cargo_config_toml))?;
 
             if let Some(build) = config.build {
                 target = build.target;
