@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.5] - 2021-09-17
+
+### Added
+
+- support for suffixed Cargo configuration file (`.cargo/config.toml`)
+
 ## [v0.2.4] - 2020-05-29
 
 ### Fixed
@@ -43,7 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 First release
 
-[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.2.5...HEAD
+[v0.2.5]: https://github.com/japaric/cargo-project/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/japaric/cargo-project/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/japaric/cargo-project/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cargo-project/compare/v0.2.1...v0.2.2
