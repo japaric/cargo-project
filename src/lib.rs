@@ -72,17 +72,16 @@ impl Project {
         // parse Cargo.toml
         let toml = root.join("Cargo.toml");
         let cargo_config = Path::new(".cargo").join("config");
+        let cargo_config_toml = cargo_config.with_extension("toml");
         let manifest = parse::<Manifest>(&toml)?;
 
         // parse .cargo/config
         let mut target = None;
         let mut target_dir = env::var_os("CARGO_TARGET_DIR").map(PathBuf::from);
-        if let Some(path) = search(root, &cargo_config) {
-            let mut config_path = path.join(&cargo_config);
-            if !config_path.exists() {
-                config_path.set_extension("toml");
-            }
-            let config: Config = parse(&config_path)?;
+        if let Some(path) = search(root, &cargo_config).map(|path| path.join(cargo_config)).or_else(|| {
+            search(root, &cargo_config_toml).map(|path| path.join(cargo_config_toml))
+        }) {
+            let config: Config = parse(&path)?;
 
             if let Some(build) = config.build {
                 target = build.target;
