@@ -78,7 +78,11 @@ impl Project {
         let mut target = None;
         let mut target_dir = env::var_os("CARGO_TARGET_DIR").map(PathBuf::from);
         if let Some(path) = search(root, &cargo_config) {
-            let config: Config = parse(&path.join(&cargo_config))?;
+            let mut config_path = path.join(&cargo_config);
+            if !config_path.exists() {
+                config_path.set_extension("toml");
+            }
+            let config: Config = parse(&config_path)?;
 
             if let Some(build) = config.build {
                 target = build.target;
