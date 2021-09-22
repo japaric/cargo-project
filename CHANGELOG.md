@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.7] - 2021-09-22
+
+### Fixed
+
+- fixed support for suffixed Cargo configuration file (`.cargo/config.toml`) in presence of Cargo config files in outer directories, like the home directory
+
 ## [v0.2.6] - 2021-09-17
 
 ### Added
