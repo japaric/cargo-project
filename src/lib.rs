@@ -78,8 +78,18 @@ impl Project {
         // parse .cargo/config
         let mut target = None;
         let mut target_dir = env::var_os("CARGO_TARGET_DIR").map(PathBuf::from);
-        if let Some(path) = search(root, &cargo_config).map(|path| path.join(cargo_config)).or_else(|| {
-            search(root, &cargo_config_toml).map(|path| path.join(cargo_config_toml))
+        if let Some(path) = path.ancestors().find_map(|dir| {
+            let path = dir.join(&cargo_config);
+            if path.exists() {
+                return Some(path);
+            }
+
+            let path = dir.join(&cargo_config_toml);
+            if path.exists() {
+                return Some(path);
+            }
+
+            None
         }) {
             let config: Config = parse(&path)?;
 
