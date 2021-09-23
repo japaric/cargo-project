@@ -33,6 +33,8 @@ use toml::de;
 use config::Config;
 use manifest::Manifest;
 
+pub use manifest::Binary;
+
 /// Information about a Cargo project
 pub struct Project {
     name: String,
@@ -42,6 +44,8 @@ pub struct Project {
     target_dir: PathBuf,
 
     toml: PathBuf,
+
+    binaries: Vec<Binary>,
 }
 
 /// Errors
@@ -58,8 +62,8 @@ impl Project {
     /// `path` doesn't need to be the directory that contains the `Cargo.toml` file; it can be any
     /// point within the Cargo project.
     pub fn query<P>(path: P) -> Result<Self, failure::Error>
-    where
-        P: AsRef<Path>,
+        where
+            P: AsRef<Path>,
     {
         let path = path.as_ref().canonicalize()?;
         let root = search(&path, "Cargo.toml").ok_or(Error::NotACargoProject)?;
@@ -140,11 +144,24 @@ impl Project {
 
         target_dir = target_dir.or_else(|| workspace.map(|path| path.join("target")));
 
+        let mut binaries = manifest.bin;
+
+        if binaries.is_empty() {
+            // see if src/main.rs exists, and if so add to automatically generated bin
+            if root.join("src/main.rs").exists() {
+                binaries.push(Binary {
+                    name: manifest.package.name.clone(),
+                    path: String::from("src/main.rs"),
+                });
+            }
+        }
+
         Ok(Project {
             name: manifest.package.name,
             target,
             target_dir: target_dir.unwrap_or(root.join("target")),
             toml,
+            binaries,
         })
     }
 
@@ -239,6 +256,13 @@ impl Project {
     pub fn target_dir(&self) -> &Path {
         &self.target_dir
     }
+
+    /// Get the binaries defined in the project.
+    ///
+    /// If no binary is explicitly defined, the default binary is returned
+    pub fn binaries(&self) -> impl Iterator<Item=&Binary> {
+        self.binaries.iter()
+    }
 }
 
 /// Build artifact
@@ -278,8 +302,8 @@ fn search<'p, P: AsRef<Path>>(path: &'p Path, file: P) -> Option<&'p Path> {
 }
 
 fn parse<T>(path: &Path) -> Result<T, failure::Error>
-where
-    T: for<'de> Deserialize<'de>,
+    where
+        T: for<'de> Deserialize<'de>,
 {
     let mut s = String::new();
     File::open(path)?.read_to_string(&mut s)?;
@@ -336,5 +360,13 @@ mod tests {
             .unwrap();
 
         assert!(p.ends_with(&format!("target/{}/debug/examples/bar.wasm", wasm)));
+    }
+
+    #[test]
+    fn binaries() {
+        let project = Project::query(env::current_dir().unwrap()).unwrap();
+
+        // being a library project there is no automatically inferred binary
+        assert_eq!(project.binaries().count(), 0);
     }
 }
