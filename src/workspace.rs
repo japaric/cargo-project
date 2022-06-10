@@ -23,7 +23,8 @@ mod tests {
 [workspace]
 members = ["foo", "bar"]
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(manifest.workspace.members[0], "foo");
         assert_eq!(manifest.workspace.members[1], "bar");
