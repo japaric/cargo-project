@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.0] - 2022-07-06
+
+### Changed
+
+- [breaking-change] changed error handling from `failure` to `thiserror` (`std::error::Error`)
+
 ## [v0.2.7] - 2021-09-22
 
 ### Fixed
@@ -57,7 +63,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 First release
 
-[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/japaric/cargo-project/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/japaric/cargo-project/compare/v0.2.7...v0.3.0
+[v0.2.7]: https://github.com/japaric/cargo-project/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/japaric/cargo-project/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/japaric/cargo-project/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/japaric/cargo-project/compare/v0.2.3...v0.2.4

@@ -7,7 +7,7 @@ keywords = ["Cargo", "project", "subcommand"]
 license = "MIT OR Apache-2.0"
 name = "cargo-project"
 repository = "https://github.com/japaric/cargo-project"
-version = "0.2.7"
+version = "0.3.0"
 
 [dependencies]
 glob = "0.3.0"
