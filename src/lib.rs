@@ -50,12 +50,16 @@ pub enum Error {
     /// error: not a Cargo project
     #[error("not a Cargo project")]
     NotACargoProject,
+    /// Invalid syntax in [workspace.members]
     #[error("workspace member path is not valid: {0}")]
     InvalidWorkspaceMember(String),
+    /// rustc-cfg error
     #[error("rustc: {0}")]
     RustcCfg(#[from] rustc_cfg::Error),
+    /// IO error
     #[error("IO: {0}")]
     Io(#[from] std::io::Error),
+    /// TOML parse error
     #[error("Parse: {0}")]
     Parse(#[from] toml::de::Error),
 }
@@ -126,8 +130,8 @@ impl Project {
                         let abs_glob = abs_glob
                             .to_str()
                             .ok_or_else(|| Error::InvalidWorkspaceMember(member_glob.clone()))?;
-                        for member_dir in glob::glob(abs_glob)? {
-                            let member_dir = member_dir?;
+                        for member_dir in glob::glob(abs_glob).map_err(|_| Error::InvalidWorkspaceMember(member_glob.clone()))? {
+                            let member_dir = member_dir.map_err(|e| Error::Io(e.into_error()))?;
                             trace!("member_dir={}", member_dir.display());
                             if outer_root.join(member_dir) == root {
                                 // we are a member of this workspace
