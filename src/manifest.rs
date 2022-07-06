@@ -9,7 +9,7 @@ pub struct Manifest {
 pub struct Package {
     pub name: String,
     pub version: String,
-    pub description: Option<String>
+    pub description: Option<String>,
 }
 
 #[cfg(test)]
@@ -26,11 +26,11 @@ mod tests {
 name = "foo"
 version = "0.1"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(manifest.package.name, "foo");
     }
-
 
     #[test]
     fn package_description_missing() {
@@ -40,7 +40,8 @@ version = "0.1"
 name = "foo"
 version = "0.1"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(manifest.package.description, None);
     }
@@ -54,7 +55,8 @@ name = "foo"
 version = "0.1"
 description = "Test description"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(manifest.package.description.unwrap(), "Test description");
     }

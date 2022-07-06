@@ -6,7 +6,7 @@
 #![deny(warnings)]
 
 #[macro_use]
-extern crate failure;
+extern crate thiserror;
 extern crate serde;
 extern crate toml;
 #[macro_use]
@@ -45,11 +45,23 @@ pub struct Project {
 }
 
 /// Errors
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
     /// error: not a Cargo project
-    #[fail(display = "not a Cargo project")]
+    #[error("not a Cargo project")]
     NotACargoProject,
+    /// Invalid syntax in [workspace.members]
+    #[error("workspace member path is not valid: {0}")]
+    InvalidWorkspaceMember(String),
+    /// rustc-cfg error
+    #[error("rustc: {0}")]
+    RustcCfg(#[from] rustc_cfg::Error),
+    /// IO error
+    #[error("IO: {0}")]
+    Io(#[from] std::io::Error),
+    /// TOML parse error
+    #[error("Parse: {0}")]
+    Parse(#[from] toml::de::Error),
 }
 
 impl Project {
@@ -57,7 +69,7 @@ impl Project {
     ///
     /// `path` doesn't need to be the directory that contains the `Cargo.toml` file; it can be any
     /// point within the Cargo project.
-    pub fn query<P>(path: P) -> Result<Self, failure::Error>
+    pub fn query<P>(path: P) -> Result<Self, Error>
     where
         P: AsRef<Path>,
     {
@@ -115,11 +127,11 @@ impl Project {
                     // this is indeed a workspace
                     for member_glob in &manifest.workspace.members {
                         let abs_glob = outer_root.join(member_glob);
-                        let abs_glob = abs_glob.to_str().ok_or_else(|| {
-                            format_err!("invalid workspace member path {}", member_glob)
-                        })?;
-                        for member_dir in glob::glob(abs_glob)? {
-                            let member_dir = member_dir?;
+                        let abs_glob = abs_glob
+                            .to_str()
+                            .ok_or_else(|| Error::InvalidWorkspaceMember(member_glob.clone()))?;
+                        for member_dir in glob::glob(abs_glob).map_err(|_| Error::InvalidWorkspaceMember(member_glob.clone()))? {
+                            let member_dir = member_dir.map_err(|e| Error::Io(e.into_error()))?;
                             trace!("member_dir={}", member_dir.display());
                             if outer_root.join(member_dir) == root {
                                 // we are a member of this workspace
@@ -164,7 +176,7 @@ impl Project {
         profile: Profile,
         target: Option<&str>,
         host: &str,
-    ) -> Result<PathBuf, failure::Error> {
+    ) -> Result<PathBuf, Error> {
         let mut path = self.target_dir().to_owned();
 
         if let Some(target) = target.or(self.target()) {
@@ -277,7 +289,7 @@ fn search<'p, P: AsRef<Path>>(path: &'p Path, file: P) -> Option<&'p Path> {
     path.ancestors().find(|dir| dir.join(&file).exists())
 }
 
-fn parse<T>(path: &Path) -> Result<T, failure::Error>
+fn parse<T>(path: &Path) -> Result<T, Error>
 where
     T: for<'de> Deserialize<'de>,
 {

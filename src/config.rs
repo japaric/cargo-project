@@ -39,7 +39,8 @@ mod tests {
 [build]
 target = "thumbv7m-none-eabi"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(config.build.unwrap().target.unwrap(), "thumbv7m-none-eabi")
     }
@@ -51,7 +52,8 @@ target = "thumbv7m-none-eabi"
 [target.thumbv7m-none-eabi]
 runner = "arm-none-eabi-gdb"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert!(config.build.is_none());
     }
@@ -66,7 +68,8 @@ runner = "arm-none-eabi-gdb"
 [build]
 target = "thumbv7m-none-eabi"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(config.build.unwrap().target.unwrap(), "thumbv7m-none-eabi");
     }
@@ -78,7 +81,8 @@ target = "thumbv7m-none-eabi"
 [build]
 target-dir = "custom-target"
 "#,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(config.build.unwrap().target_dir.unwrap(), "custom-target")
     }
