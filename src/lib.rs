@@ -73,7 +73,7 @@ impl Project {
     where
         P: AsRef<Path>,
     {
-        let path = path.as_ref().canonicalize()?;
+        let path = dunce::canonicalize(path)?;
         let root = search(&path, "Cargo.toml").ok_or(Error::NotACargoProject)?;
         debug!(
             "Project::query(path={}): root={}",

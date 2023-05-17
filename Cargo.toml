@@ -10,6 +10,7 @@ repository = "https://github.com/japaric/cargo-project"
 version = "0.2.7"
 
 [dependencies]
+dunce = "1.0.4"
 glob = "0.3.0"
 log = "0.4.8"
 rustc-cfg = "0.5.0"
